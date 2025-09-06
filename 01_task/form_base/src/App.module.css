@@ -1,0 +1,36 @@
+* {
+  box-sizing: border-box;
+}
+
+fieldset {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+
+  gap: 1.2rem;
+  justify-content: flex-start;
+  align-items: start;
+}
+
+label {
+  padding: 0.8rem;
+  grid-column-start: 1;
+  grid-column-end: 2;
+  text-align: right;
+}
+
+input {
+  grid-column-start: 2;
+  grid-column-end: 5;
+  width: 100%;
+}
+
+.divInput {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+}
+
+button {
+  width: 100%;
+}
