@@ -4,8 +4,8 @@ import "./App.css";
 import * as yup from "yup";
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-// const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
-const passwordRegex = /^\w*$/; //testing
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/;
+// const passwordRegex = /^\w*$/; //testing
 
 const emailChangeSchema = yup.string().max(30, "Email is too long");
 
