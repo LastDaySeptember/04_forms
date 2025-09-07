@@ -16,8 +16,8 @@ import "./App.css";
 // };
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-// const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
-const passwordRegex = /^\w*$/; //testing
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
+// const passwordRegex = /^\w*$/; //testing
 
 function App() {
   const [passwordRepeat, setPasswordRepeat] = useState("");
