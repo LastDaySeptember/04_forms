@@ -1,23 +1,52 @@
 import { useState, useRef, useEffect } from "react";
 import styles from "./App.module.css";
 import "./App.css";
-
-// const initialState = { email: "", password: "" };
-
-// export const useStore = () => {
-//   const [state, setState] = useState(initialState);
-
-//   return {
-//     getState: () => state,
-//     updateState: (fieldName, newValue) => {
-//       setState({ ...state, [fieldName]: newValue });
-//     },
-//   };
-// };
+import * as yup from "yup";
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
-// const passwordRegex = /^\w*$/; //testing
+// const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
+const passwordRegex = /^\w*$/; //testing
+
+const emailChangeSchema = yup.string().max(30, "Email is too long");
+
+const emailBlurSchema = yup
+  .string()
+  .required("Add your email address, please")
+  .matches(
+    emailRegex,
+    "Wrong email address. Must include @ and domain like .com"
+  );
+
+const passwordChangeSchema = yup
+  .string()
+  .max(20, "Password should be less than 20 symbols");
+
+const passwordBlurSchema = yup
+  .string()
+  .required("Add your password, please")
+  .min(8, "Password should be more than 7 symbols")
+  .matches(
+    passwordRegex,
+    "Password should contain at least 8 characters, uppercase, lowercase, number, special character"
+  );
+
+const passwordRepeateBlurSchema = yup
+  .string()
+  .required("Please re-write your password");
+
+const validateAndGetErrorMessage = (schema, value) => {
+  let errorMessage = null;
+
+  try {
+    schema.validateSync(value);
+  } catch ({ errors }) {
+    errorMessage = errors
+      .reduce((message, error) => message + error + "\n", "")
+      .trim();
+  }
+
+  return errorMessage;
+};
 
 function App() {
   const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -44,19 +73,36 @@ function App() {
   };
 
   // utility functions
-  function isSimilar(passwordMain, passwordforCheck) {
-    if (passwordMain !== passwordforCheck) {
+  function isSimilarSteps(passwordMain, passwordforCheck) {
+    if (passwordforCheck.length > passwordMain.length) {
       return false;
-    } else {
-      return true;
     }
-  }
 
-  function isDisabled() {
-    if (!emailError && !passwordError && !passwordRepeatError) {
-      return false;
+    for (let i = 0; i < passwordforCheck.length; i++) {
+      if (passwordforCheck[i] != passwordMain[i]) {
+        return false;
+      }
     }
     return true;
+  }
+
+  function checkFormValidity() {
+    const formIsValid =
+      !!formData.email &&
+      !!formData.password &&
+      !!passwordRepeat &&
+      formData.password.length === passwordRepeat.length &&
+      !emailError &&
+      !passwordError &&
+      !passwordRepeatError;
+
+    return formIsValid;
+  }
+
+  function setButtonFocus() {
+    if (checkFormValidity() && buttonSubmit.current) {
+      buttonSubmit.current.focus();
+    }
   }
 
   // input validations
@@ -65,17 +111,15 @@ function App() {
     setEmailError(null);
     setFormData({ ...formData, email: emailValue });
 
-    if (emailValue.length > 30) {
-      setEmailError("Email is too long");
-    }
+    const newError = validateAndGetErrorMessage(emailChangeSchema, emailValue);
+    setEmailError(newError);
   };
 
   const onEmailBlur = (event) => {
     const emailValue = event.target.value;
 
-    if (!emailRegex.test(emailValue)) {
-      setEmailError("Wrong email address. Must include @ and domain like .com");
-    }
+    const newError = validateAndGetErrorMessage(emailBlurSchema, emailValue);
+    setEmailError(newError);
   };
 
   // checking password
@@ -85,51 +129,63 @@ function App() {
 
     setPasswordError(null);
 
-    if (passwordValue.length > 20) {
-      setPasswordError("Password should be less than 20 symbols");
-    }
+    const newPasswordError = validateAndGetErrorMessage(
+      passwordChangeSchema,
+      passwordValue
+    );
+    setPasswordError(newPasswordError);
   };
 
   const onPasswordBlur = (event) => {
     const passwordValue = event.target.value;
 
-    if (passwordValue.length < 7) {
-      setPasswordError("Password should be more than 7 symbols");
-    } else if (!passwordRegex.test(passwordValue)) {
-      setPasswordError(
-        "Password should contain at least 8 characters, uppercase, lowercase, number, special character"
-      );
-    }
+    const newPasswordError = validateAndGetErrorMessage(
+      passwordBlurSchema,
+      passwordValue
+    );
+    setPasswordError(newPasswordError);
+    checkFormValidity();
   };
 
   // checking password repeated
   const onPasswordRepeatChange = (event) => {
     const passwordRepeatValue = event.target.value;
     setPasswordRepeat(passwordRepeatValue);
-    setPasswordRepeatError(null);
     const { password: passwordValue } = formData;
-
+    setPasswordRepeatError(null);
     let isSimilarPassword = false;
 
-    isSimilarPassword = isSimilar(passwordValue, passwordRepeatValue);
+    isSimilarPassword = isSimilarSteps(passwordValue, passwordRepeatValue);
 
     if (isSimilarPassword) {
       setPasswordRepeatError(null);
     } else {
       setPasswordRepeatError("Passwords are not similar");
     }
+
+    checkFormValidity();
   };
 
-  useEffect(() => {
-    if (
-      !emailError &&
-      !passwordError &&
-      !passwordRepeatError &&
-      buttonSubmit.current
-    ) {
-      buttonSubmit.current.focus();
+  const onPasswordRepeatBlur = (event) => {
+    const passwordRepeatValue = event.target.value;
+    const { password: passwordValue } = formData;
+
+    let isSimilarPassword = false;
+
+    isSimilarPassword = isSimilarSteps(passwordValue, passwordRepeatValue);
+
+    if (isSimilarPassword) {
+      setPasswordRepeatError(null);
+    } else {
+      setPasswordRepeatError("Passwords are not similar");
     }
-  }, [emailError, passwordError, passwordRepeatError]);
+
+    checkFormValidity();
+  };
+
+  setTimeout(() => {
+    setButtonFocus();
+  }, 0);
 
   return (
     <>
@@ -172,12 +228,17 @@ function App() {
               value={passwordRepeat}
               id="passwordRepeat"
               onChange={onPasswordRepeatChange}
+              onBlur={onPasswordRepeatBlur}
             ></input>
             {passwordRepeatError && (
               <p className={styles.error}>{passwordRepeatError}</p>
             )}
           </div>
-          <button type="submit" disabled={isDisabled()} ref={buttonSubmit}>
+          <button
+            type="submit"
+            disabled={!checkFormValidity()}
+            ref={buttonSubmit}
+          >
             Register
           </button>
         </fieldset>
