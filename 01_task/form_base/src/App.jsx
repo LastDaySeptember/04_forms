@@ -16,7 +16,7 @@ import "./App.css";
 // };
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/;
 // const passwordRegex = /^\w*$/; //testing
 
 function App() {
@@ -44,19 +44,36 @@ function App() {
   };
 
   // utility functions
-  function isSimilar(passwordMain, passwordforCheck) {
-    if (passwordMain !== passwordforCheck) {
+  function isSimilarSteps(passwordMain, passwordforCheck) {
+    if (passwordforCheck.length > passwordMain.length) {
       return false;
-    } else {
-      return true;
     }
-  }
 
-  function isDisabled() {
-    if (!emailError && !passwordError && !passwordRepeatError) {
-      return false;
+    for (let i = 0; i < passwordforCheck.length; i++) {
+      if (passwordforCheck[i] != passwordMain[i]) {
+        return false;
+      }
     }
     return true;
+  }
+
+  function checkFormValidity() {
+    const formIsValid =
+      !!formData.email &&
+      !!formData.password &&
+      !!passwordRepeat &&
+      formData.password.length === passwordRepeat.length &&
+      !emailError &&
+      !passwordError &&
+      !passwordRepeatError;
+
+    return formIsValid;
+  }
+
+  function setButtonFocus() {
+    if (checkFormValidity() && buttonSubmit.current) {
+      buttonSubmit.current.focus();
+    }
   }
 
   // input validations
@@ -68,6 +85,7 @@ function App() {
     if (emailValue.length > 30) {
       setEmailError("Email is too long");
     }
+    checkFormValidity();
   };
 
   const onEmailBlur = (event) => {
@@ -76,6 +94,7 @@ function App() {
     if (!emailRegex.test(emailValue)) {
       setEmailError("Wrong email address. Must include @ and domain like .com");
     }
+    checkFormValidity();
   };
 
   // checking password
@@ -88,6 +107,8 @@ function App() {
     if (passwordValue.length > 20) {
       setPasswordError("Password should be less than 20 symbols");
     }
+
+    checkFormValidity();
   };
 
   const onPasswordBlur = (event) => {
@@ -100,6 +121,7 @@ function App() {
         "Password should contain at least 8 characters, uppercase, lowercase, number, special character"
       );
     }
+    checkFormValidity();
   };
 
   // checking password repeated
@@ -111,25 +133,21 @@ function App() {
 
     let isSimilarPassword = false;
 
-    isSimilarPassword = isSimilar(passwordValue, passwordRepeatValue);
+    isSimilarPassword = isSimilarSteps(passwordValue, passwordRepeatValue);
 
     if (isSimilarPassword) {
       setPasswordRepeatError(null);
     } else {
       setPasswordRepeatError("Passwords are not similar");
     }
+
+    checkFormValidity();
+    setButtonFocus();
   };
 
-  useEffect(() => {
-    if (
-      !emailError &&
-      !passwordError &&
-      !passwordRepeatError &&
-      buttonSubmit.current
-    ) {
-      buttonSubmit.current.focus();
-    }
-  }, [emailError, passwordError, passwordRepeatError]);
+  setTimeout(() => {
+    setButtonFocus();
+  }, 0);
 
   return (
     <>
@@ -177,7 +195,11 @@ function App() {
               <p className={styles.error}>{passwordRepeatError}</p>
             )}
           </div>
-          <button type="submit" disabled={isDisabled()} ref={buttonSubmit}>
+          <button
+            type="submit"
+            disabled={!checkFormValidity()}
+            ref={buttonSubmit}
+          >
             Register
           </button>
         </fieldset>
